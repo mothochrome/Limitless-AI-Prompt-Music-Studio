@@ -17,7 +17,8 @@ import { MidiDispatcher } from '../utils/MidiDispatcher';
 // FIX: Extended `LitElement` to make `PromptDjMidi` a valid web component, enabling it to be added to the DOM and handle events.
 @customElement('prompt-dj-midi')
 export class PromptDjMidi extends LitElement {
-  static override styles = css`
+  // FIX: Removed `override` modifier.
+  static styles = css`
     :host {
       height: 100%;
       display: flex;
@@ -54,9 +55,12 @@ export class PromptDjMidi extends LitElement {
       position: absolute;
       top: 0;
       left: 0;
-      padding: 5px;
+      padding: 10px;
       display: flex;
-      gap: 5px;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      z-index: 10;
     }
     button {
       font: inherit;
@@ -74,6 +78,22 @@ export class PromptDjMidi extends LitElement {
         color: #000;
       }
     }
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: white;
+      background: #0006;
+      padding: 4px 8px;
+      border: 1px solid #fff4;
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: monospace;
+    }
+    input[type=range] {
+      width: 80px;
+      accent-color: #fff;
+    }
     select {
       font: inherit;
       padding: 5px;
@@ -86,13 +106,20 @@ export class PromptDjMidi extends LitElement {
     }
   `;
 
-  private prompts: Map<string, Prompt>;
+  // FIX: Make prompts a property so it triggers update and is accessible.
+  @property({ attribute: false })
+  public prompts: Map<string, Prompt> = new Map();
+  
   private midiDispatcher: MidiDispatcher;
   private chaosIntervalId: number | null = null;
 
 
   @property({ type: Boolean }) private showMidi = false;
   @property({ type: String }) public playbackState: PlaybackState = 'stopped';
+  
+  @property({ type: Number }) public bpm = 120;
+  @property({ type: Number }) public intensity = 0.5;
+
   @state() public audioLevel = 0;
   @state() private midiInputIds: string[] = [];
   @state() private activeMidiInputId: string | null = null;
@@ -101,11 +128,9 @@ export class PromptDjMidi extends LitElement {
   @property({ type: Object })
   private filteredPrompts = new Set<string>();
 
-  constructor(
-    initialPrompts: Map<string, Prompt>,
-  ) {
+  // FIX: Removed arguments from constructor to be a valid Custom Element.
+  constructor() {
     super();
-    this.prompts = initialPrompts;
     this.midiDispatcher = new MidiDispatcher();
   }
 
@@ -131,11 +156,11 @@ export class PromptDjMidi extends LitElement {
     newPrompts.set(promptId, prompt);
 
     this.prompts = newPrompts;
-    // FIX: `requestUpdate` is available on `LitElement` to trigger a re-render.
-    this.requestUpdate();
+    // FIX: Cast `this` to `any` to satisfy TypeScript compiler for requestUpdate.
+    (this as any).requestUpdate();
 
-    // FIX: `dispatchEvent` is available because `LitElement` extends `EventTarget`.
-    this.dispatchEvent(
+    // FIX: Cast `this` to `HTMLElement` to satisfy TypeScript compiler for dispatchEvent.
+    (this as unknown as HTMLElement).dispatchEvent(
       new CustomEvent('prompts-changed', { detail: this.prompts }),
     );
   }
@@ -182,7 +207,8 @@ export class PromptDjMidi extends LitElement {
       this.activeMidiInputId = this.midiDispatcher.activeMidiInputId;
     } catch (e: any) {
       this.showMidi = false;
-      this.dispatchEvent(new CustomEvent('error', {detail: e.message}));
+      // FIX: Cast `this` to `HTMLElement`.
+      (this as unknown as HTMLElement).dispatchEvent(new CustomEvent('error', {detail: e.message}));
     }
   }
 
@@ -194,7 +220,8 @@ export class PromptDjMidi extends LitElement {
   }
 
   private playPause() {
-    this.dispatchEvent(new CustomEvent('play-pause'));
+    // FIX: Cast `this` to `HTMLElement`.
+    (this as unknown as HTMLElement).dispatchEvent(new CustomEvent('play-pause'));
   }
 
   public addFilteredPrompt(prompt: string) {
@@ -234,10 +261,12 @@ export class PromptDjMidi extends LitElement {
       
       this.prompts = new Map(newPrompts);
   
-      this.dispatchEvent(
+      // FIX: Cast `this` to `HTMLElement`.
+      (this as unknown as HTMLElement).dispatchEvent(
         new CustomEvent('prompts-changed', { detail: this.prompts }),
       );
-      this.requestUpdate();
+      // FIX: Cast `this` to `any`.
+      (this as any).requestUpdate();
     }, 1000);
   }
   
@@ -248,7 +277,22 @@ export class PromptDjMidi extends LitElement {
     }
   }
 
-  override render() {
+  private handleBpmChange(e: Event) {
+    const input = e.target as HTMLInputElement;
+    this.bpm = parseInt(input.value, 10);
+    // FIX: Cast `this` to `HTMLElement`.
+    (this as unknown as HTMLElement).dispatchEvent(new CustomEvent('bpm-changed', { detail: this.bpm }));
+  }
+
+  private handleIntensityChange(e: Event) {
+    const input = e.target as HTMLInputElement;
+    this.intensity = parseFloat(input.value);
+    // FIX: Cast `this` to `HTMLElement`.
+    (this as unknown as HTMLElement).dispatchEvent(new CustomEvent('intensity-changed', { detail: this.intensity }));
+  }
+
+  // FIX: Removed `override` modifier.
+  render() {
     const bg = styleMap({
       backgroundImage: this.makeBackground(),
     });
@@ -259,6 +303,17 @@ export class PromptDjMidi extends LitElement {
           class=${this.chaosMode ? 'active' : ''}
           >Chaos</button
         >
+        
+        <div class="control-group">
+            <label>BPM: ${this.bpm}</label>
+            <input type="range" min="60" max="180" step="1" .value=${this.bpm} @input=${this.handleBpmChange}>
+        </div>
+
+        <div class="control-group">
+            <label>Intensity: ${Math.round(this.intensity * 100)}%</label>
+            <input type="range" min="0" max="1" step="0.01" .value=${this.intensity} @input=${this.handleIntensityChange}>
+        </div>
+
         <button
           @click=${this.toggleShowMidi}
           class=${this.showMidi ? 'active' : ''}

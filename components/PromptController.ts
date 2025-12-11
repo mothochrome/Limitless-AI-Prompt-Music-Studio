@@ -16,7 +16,8 @@ import type { Prompt, ControlChange } from '../types';
 // FIX: Extended `LitElement` to make `PromptController` a valid web component and enable its lifecycle methods and event dispatching.
 @customElement('prompt-controller')
 export class PromptController extends LitElement {
-  static override styles = css`
+  // FIX: Removed `override` modifier.
+  static styles = css`
     .prompt {
       width: 100%;
       display: flex;
@@ -124,7 +125,8 @@ export class PromptController extends LitElement {
 
   private lastValidText!: string;
 
-  override connectedCallback() {
+  // FIX: Removed `override` modifier.
+  connectedCallback() {
     super.connectedCallback();
     this.midiDispatcher?.addEventListener('cc-message', (e: Event) => {
       const customEvent = e as CustomEvent<ControlChange>;
@@ -141,7 +143,8 @@ export class PromptController extends LitElement {
     });
   }
 
-  override firstUpdated() {
+  // FIX: Removed `override` modifier.
+  firstUpdated() {
     // contenteditable is applied to textInput so we can "shrink-wrap" to text width
     // It's set here and not render() because Lit doesn't believe it's a valid attribute.
     this.textInput.setAttribute('contenteditable', 'plaintext-only');
@@ -151,7 +154,8 @@ export class PromptController extends LitElement {
     this.lastValidText = this.text;
   }
 
-  override update(changedProperties: Map<string, unknown>) {
+  // FIX: Removed `override` modifier.
+  update(changedProperties: Map<string, unknown>) {
     if (changedProperties.has('showCC') && !this.showCC) {
       this.learnMode = false;
     }
@@ -162,8 +166,8 @@ export class PromptController extends LitElement {
   }
 
   private dispatchPromptChange() {
-    // FIX: `dispatchEvent` is available because LitElement extends `EventTarget`.
-    this.dispatchEvent(
+    // FIX: Cast `this` to `HTMLElement` to satisfy TypeScript compiler for dispatchEvent.
+    (this as unknown as HTMLElement).dispatchEvent(
       new CustomEvent<Prompt>('prompt-changed', {
         detail: {
           promptId: this.promptId,
@@ -225,7 +229,8 @@ export class PromptController extends LitElement {
     this.learnMode = !this.learnMode;
   }
 
-  override render() {
+  // FIX: Removed `override` modifier.
+  render() {
     const classes = classMap({
       'prompt': true,
       'learn-mode': this.learnMode,

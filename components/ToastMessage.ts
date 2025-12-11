@@ -9,8 +9,8 @@ import { classMap } from 'lit/directives/class-map.js';
 // FIX: Extended `LitElement` to make `ToastMessage` a valid web component.
 @customElement('toast-message')
 export class ToastMessage extends LitElement {
-  // FIX: `override` is now valid as this static property exists on the base class.
-  static override styles = css`
+  // FIX: Removed `override` modifier.
+  static styles = css`
     .toast {
       line-height: 1.6;
       position: fixed;
@@ -60,8 +60,8 @@ export class ToastMessage extends LitElement {
     } );
   }
 
-  // FIX: `override` is now valid as this method exists on the base class.
-  override render() {
+  // FIX: Removed `override` modifier.
+  render() {
     return html`<div class=${classMap({ showing: this.showing, toast: true })}>
       <div class="message">${this.renderMessageWithLinks()}</div>
       <button @click=${this.hide}>✕</button>

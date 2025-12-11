@@ -18,14 +18,22 @@ const model = 'lyria-realtime-exp';
 function main() {
   const initialPrompts = buildInitialPrompts();
 
-  const pdjMidi = new PromptDjMidi(initialPrompts);
+  // Fix: Cast to PromptDjMidi & HTMLElement to satisfy TypeScript Node compatibility and addEventListener presence.
+  // Instantiate without arguments and set prompts property manually.
+  const pdjMidi = new PromptDjMidi() as unknown as PromptDjMidi & HTMLElement;
+  pdjMidi.prompts = initialPrompts;
   document.body.appendChild(pdjMidi);
 
-  const toastMessage = new ToastMessage();
+  // Fix: Cast to ToastMessage & HTMLElement to satisfy TypeScript Node compatibility.
+  const toastMessage = new ToastMessage() as unknown as ToastMessage & HTMLElement;
   document.body.appendChild(toastMessage);
 
   const liveMusicHelper = new LiveMusicHelper(ai, model);
   liveMusicHelper.setWeightedPrompts(initialPrompts);
+  
+  // Sync initial values
+  pdjMidi.bpm = liveMusicHelper.bpm;
+  pdjMidi.intensity = liveMusicHelper.intensity;
 
   const audioAnalyser = new AudioAnalyser(liveMusicHelper.audioContext);
   liveMusicHelper.extraDestination = audioAnalyser.node;
@@ -39,6 +47,16 @@ function main() {
   pdjMidi.addEventListener('play-pause', () => {
     liveMusicHelper.playPause();
   });
+  
+  pdjMidi.addEventListener('bpm-changed', ((e: Event) => {
+    const customEvent = e as CustomEvent<number>;
+    liveMusicHelper.setBpm(customEvent.detail);
+  }));
+
+  pdjMidi.addEventListener('intensity-changed', ((e: Event) => {
+    const customEvent = e as CustomEvent<number>;
+    liveMusicHelper.setIntensity(customEvent.detail);
+  }));
 
   liveMusicHelper.addEventListener('playback-state-changed', ((e: Event) => {
     const customEvent = e as CustomEvent<PlaybackState>;

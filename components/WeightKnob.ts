@@ -17,8 +17,8 @@ const HALO_LEVEL_MODIFIER = 1;
 // FIX: Extended `LitElement` to make `WeightKnob` a valid web component.
 @customElement('weight-knob')
 export class WeightKnob extends LitElement {
-  // FIX: `override` is now valid as this static property exists on the base `LitElement` class.
-  static override styles = css`
+  // FIX: Removed `override` modifier.
+  static styles = css`
     :host {
       cursor: grab;
       position: relative;
@@ -75,8 +75,8 @@ export class WeightKnob extends LitElement {
     const delta = this.dragStartPos - e.clientY;
     this.value = this.dragStartValue + delta * 0.01;
     this.value = Math.max(0, Math.min(2, this.value));
-    // FIX: `dispatchEvent` is available because `LitElement` extends `EventTarget`.
-    this.dispatchEvent(new CustomEvent<number>('input', { detail: this.value }));
+    // FIX: Cast `this` to `HTMLElement` for dispatchEvent.
+    (this as unknown as HTMLElement).dispatchEvent(new CustomEvent<number>('input', { detail: this.value }));
   }
 
   private handlePointerUp() {
@@ -89,8 +89,8 @@ export class WeightKnob extends LitElement {
     const delta = e.deltaY;
     this.value = this.value + delta * -0.0025;
     this.value = Math.max(0, Math.min(2, this.value));
-    // FIX: `dispatchEvent` is available because `LitElement` extends `EventTarget`.
-    this.dispatchEvent(new CustomEvent<number>('input', { detail: this.value }));
+    // FIX: Cast `this` to `HTMLElement` for dispatchEvent.
+    (this as unknown as HTMLElement).dispatchEvent(new CustomEvent<number>('input', { detail: this.value }));
   }
 
   private describeArc(
@@ -113,8 +113,8 @@ export class WeightKnob extends LitElement {
     );
   }
 
-  // FIX: `override` is now valid as this method exists on the base `LitElement` class.
-  override render() {
+  // FIX: Removed `override` modifier.
+  render() {
     const rotationRange = Math.PI * 2 * 0.75;
     const minRot = -rotationRange / 2 - Math.PI / 2;
     const maxRot = rotationRange / 2 - Math.PI / 2;

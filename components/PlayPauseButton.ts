@@ -12,8 +12,8 @@ export class PlayPauseButton extends LitElement {
 
   @property({ type: String }) playbackState: PlaybackState = 'stopped';
 
-  // FIX: `override` is now valid because `styles` is a static property on the base `LitElement` class.
-  static override styles = css`
+  // FIX: Removed `override` modifier to satisfy TypeScript compiler.
+  static styles = css`
     :host {
       position: relative;
       display: flex;
@@ -179,8 +179,8 @@ export class PlayPauseButton extends LitElement {
     }
   }
 
-  // FIX: `override` is now valid because `render` is a method on the base `LitElement` class.
-  override render() {
+  // FIX: Removed `override` modifier to satisfy TypeScript compiler.
+  render() {
     return html`${this.renderSvg()}<div class="hitbox"></div>`;
   }
 }

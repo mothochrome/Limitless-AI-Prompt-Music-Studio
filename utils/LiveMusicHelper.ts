@@ -28,6 +28,10 @@ export class LiveMusicHelper extends EventTarget {
   private playbackState: PlaybackState = 'stopped';
 
   private prompts: Map<string, Prompt>;
+  
+  // New properties for control
+  public bpm: number = 120;
+  public intensity: number = 0.5;
 
   constructor(ai: GoogleGenAI, model: string) {
     super();
@@ -131,12 +135,27 @@ export class LiveMusicHelper extends EventTarget {
     try {
       await this.session.setWeightedPrompts({
         weightedPrompts,
-      });
+        // Cast to any to send extra parameters that might not be in the strict typing yet
+        bpm: this.bpm,
+        intensity: this.intensity,
+      } as any);
     } catch (e: any) {
       this.dispatchEvent(new CustomEvent('error', { detail: e.message }));
       this.pause();
     }
   }, 200);
+  
+  public setBpm(bpm: number) {
+    this.bpm = bpm;
+    // Trigger an update with the current prompts and new BPM
+    this.setWeightedPrompts(this.prompts);
+  }
+
+  public setIntensity(intensity: number) {
+    this.intensity = intensity;
+    // Trigger an update with the current prompts and new Intensity
+    this.setWeightedPrompts(this.prompts);
+  }
 
   public async play() {
     this.setPlaybackState('loading');
